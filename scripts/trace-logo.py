@@ -59,17 +59,17 @@ white, yellow, text = trace("white"), trace("yellow"), trace("text")
 parts = ['''<svg xmlns="http://www.w3.org/2000/svg" class="reveal-art" viewBox="0 0 1080 1080" role="img" aria-labelledby="logo-title">
 <title id="logo-title">Ratih Creative — logo putih dengan aksen kuning</title>
 <!-- Vectorized from references/frame_005.jpg with scripts/trace-logo.py. -->
-<defs><radialGradient id="backdrop"><stop offset="0" stop-color="#101117"/><stop offset="1" stop-color="#08090c"/></radialGradient></defs>
+<defs><radialGradient id="backdrop"><stop offset="0" stop-color="#08090c"/><stop offset="1" stop-color="#08090c"/></radialGradient></defs>
 <rect width="1080" height="1080" fill="url(#backdrop)"/>
-<g class="construction" opacity="0" stroke="#444951" stroke-width="1">''']
+<g class="construction" opacity="0" stroke="#FFFFFF" stroke-width="1">''']
 for x in [264, 564, 820]:
     parts.append(f'<line x1="{x}" y1="180" x2="{x}" y2="774"/>')
 for y in [213, 415, 710]:
     parts.append(f'<line x1="215" y1="{y}" x2="865" y2="{y}"/>')
 parts.append('</g>')
-for paths, color in [(white, "#fff"), (yellow, "#ffc329")]:
+for paths, color in [(white, "#fff"), (yellow, "#FFC727")]:
     parts.extend(path_markup(p, "logo-fill", color) for p in paths)
-parts.append('<g fill="none" stroke="#d7d8da" stroke-width="1.2" stroke-linejoin="round">')
+parts.append('<g fill="none" stroke="#FFFFFF" stroke-width="1.2" stroke-linejoin="round">')
 parts.extend(path_markup(p, "logo-outline") for p in white + yellow)
 parts.append('</g><g class="creative-word" fill="#fff" aria-hidden="true">')
 # Animate wrappers so original traced positions are never overwritten.
