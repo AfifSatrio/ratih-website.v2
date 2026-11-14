@@ -10,39 +10,6 @@ export default function HeroReveal({ children }: { children: React.ReactNode }) 
   const root = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    const hero = root.current;
-    if (!hero) return;
-
-    let frame = 0;
-    const updateOpacity = () => {
-      frame = 0;
-      const bounds = hero.getBoundingClientRect();
-      const fadeDistance = Math.max(1, Math.min(bounds.height, window.innerHeight) * 0.6);
-      const progress = Math.min(1, Math.max(0, -bounds.top / fadeDistance));
-      // Fade parent layers so the intro can still animate its own opacity independently.
-      const opacity = 1 - progress * progress * (3 - 2 * progress);
-      hero.style.setProperty("--hero-art-opacity", String(opacity));
-    };
-    const scheduleUpdate = () => {
-      if (!frame) frame = window.requestAnimationFrame(updateOpacity);
-    };
-
-    updateOpacity();
-    window.addEventListener("scroll", scheduleUpdate, { passive: true });
-    window.addEventListener("resize", scheduleUpdate);
-    const resizeObserver = new ResizeObserver(scheduleUpdate);
-    resizeObserver.observe(hero);
-
-    return () => {
-      window.cancelAnimationFrame(frame);
-      window.removeEventListener("scroll", scheduleUpdate);
-      window.removeEventListener("resize", scheduleUpdate);
-      resizeObserver.disconnect();
-      hero.style.removeProperty("--hero-art-opacity");
-    };
-  }, []);
-
-  useEffect(() => {
     const scope = createScope({ root }).add(() => {
       const stage = root.current!.querySelector<HTMLElement>(".hero-stage")!;
       const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -100,6 +67,20 @@ export default function HeroReveal({ children }: { children: React.ReactNode }) 
         if (reducedMotion.matches) reveal.seek(reveal.duration);
         else reveal.restart();
       };
+      const onScrollExit = (event: Event) => {
+        const exiting = (event as CustomEvent<boolean>).detail;
+        if (exiting) {
+          // A scroll during the intro should exit the finished artwork, not fight its drawing.
+          if (!reveal.completed) reveal.seek(reveal.duration);
+          driftLeft.pause();
+          driftRight.pause();
+        } else if (inView && !reducedMotion.matches) {
+          driftLeft.play();
+          driftRight.play();
+        }
+      };
+      const hero = root.current!;
+      hero.addEventListener("hero-scroll-exit", onScrollExit);
       const visibility = new IntersectionObserver(([entry]) => {
         inView = entry.isIntersecting;
         if (!inView) {
@@ -114,6 +95,7 @@ export default function HeroReveal({ children }: { children: React.ReactNode }) 
       play();
       reducedMotion.addEventListener("change", play);
       return () => {
+        hero.removeEventListener("hero-scroll-exit", onScrollExit);
         reducedMotion.removeEventListener("change", play);
         visibility.disconnect();
       };
@@ -130,14 +112,14 @@ export default function HeroReveal({ children }: { children: React.ReactNode }) 
       <div className="hero-layout">
         {children}
         <div className="hero-copy">
-          <h1 id="hero-title" className="hero-title hero-enter">
+          <h1 id="hero-title" tabIndex={-1} className="hero-title hero-enter">
             RATIH<br />CREATIVE<br /><span>MEDIA</span>
           </h1>
           <p className="hero-description hero-enter">
             Sebuah Production House dengan tim sederhana yang bergerak di bidang jasa Fotografi,
             Videografi dan Desain Grafis. Berdiri dari kolaborasi kreativitas dan hobi yang sejalan.
           </p>
-          <button className="hero-cta hero-enter rounded-md" type="button" disabled>
+          <button className="hero-cta hero-enter rounded-md" type="button" data-scene="services">
             Jelajahi lebih lanjut
           </button>
         </div>
