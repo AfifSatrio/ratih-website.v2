@@ -1,109 +1,13 @@
 "use client";
 
-import { animate, createScope, createTimeline, stagger, svg } from "animejs";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import HeroDecorations from "./hero-decorations";
-
-const DECORATIONS_START = 4050;
+import { useHeroReveal } from "../hooks/use-hero-reveal";
 
 export default function HeroReveal({ children }: { children: React.ReactNode }) {
   const root = useRef<HTMLElement>(null);
 
-  useEffect(() => {
-    const scope = createScope({ root }).add(() => {
-      const stage = root.current!.querySelector<HTMLElement>(".hero-stage")!;
-      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-      let inView = true;
-      const driftLeft = animate(".hero-drift-left", {
-        translateY: ["0%", "-50%"], duration: 30000, ease: "linear", loop: true, autoplay: false,
-      });
-      const driftRight = animate(".hero-drift-right", {
-        translateY: ["-50%", "0%"], duration: 30000, ease: "linear", loop: true, autoplay: false,
-      });
-      const reveal = createTimeline({ autoplay: false, defaults: { ease: "inOut(3)" } })
-        .add(stage, { scale: [0.82, 0.82], duration: 1 }, 0)
-        .add(".reveal-art", { opacity: [0, 1], duration: 700 }, 200)
-        .add(".construction", { opacity: [0, 0.65], duration: 600 }, 400)
-        .add(svg.createDrawable(".construction line"), {
-          draw: ["0 0", "0 1"], duration: 1000, delay: stagger(65),
-        }, 400)
-        .add(svg.createDrawable(".logo-outline"), {
-          draw: ["0 0", "0 1"], duration: 2100, delay: stagger(110), ease: "inOutSine",
-        }, 850)
-        .add(".construction", { opacity: 0, duration: 700 }, 2700)
-        .add(".logo-fill", { opacity: [0, 1], duration: 950, delay: stagger(90) }, 3150)
-        .add(".logo-outline", { opacity: [1, 0], duration: 650 }, 3650)
-        .add(".creative-letter", {
-          opacity: [0, 1], translateY: [14, 0], duration: 700, delay: stagger(110), ease: "out(3)",
-        }, 4050)
-        .stretch(3000)
-        .add(stage, { scale: 1, duration: 1200, ease: "inOutQuint" }, 3000)
-        .add(".logo-fill", { opacity: 0, duration: 700 }, 3000)
-        .add(".logo-outline", { opacity: 0.24, strokeWidth: 2, duration: 800 }, 3000)
-        .set(".creative-word path", { stroke: "#FFFFFF", strokeWidth: 1.5 }, 3000)
-        .add(".creative-word", { fillOpacity: 0, opacity: 0.16, duration: 700 }, 3000)
-        .set(".hero-copy", { visibility: "visible" }, 3550)
-        .add(".hero-enter", {
-          opacity: [0, 1], translateY: [24, 0], duration: 800,
-          delay: stagger(140), ease: "out(3)",
-        }, 3550)
-        .add(".hero-side-left", {
-          opacity: [0, 1], translateX: ["-50%", "0%"], duration: 1000, ease: "out(3)",
-        }, DECORATIONS_START)
-        .add(".hero-side-right", {
-          opacity: [0, 1], translateX: ["50%", "0%"], duration: 1000, ease: "out(3)",
-        }, DECORATIONS_START)
-        .call(() => {
-          if (inView && !reducedMotion.matches) {
-            driftLeft.play();
-            driftRight.play();
-          }
-        }, DECORATIONS_START + 1000);
-      const play = () => {
-        driftLeft.pause();
-        driftRight.pause();
-        driftLeft.seek(0);
-        driftRight.seek(0);
-        if (reducedMotion.matches) reveal.seek(reveal.duration);
-        else reveal.restart();
-      };
-      const onScrollExit = (event: Event) => {
-        const exiting = (event as CustomEvent<boolean>).detail;
-        if (exiting) {
-          // A scroll during the intro should exit the finished artwork, not fight its drawing.
-          if (!reveal.completed) reveal.seek(reveal.duration);
-          driftLeft.pause();
-          driftRight.pause();
-        } else if (inView && !reducedMotion.matches) {
-          driftLeft.play();
-          driftRight.play();
-        }
-      };
-      const hero = root.current!;
-      hero.addEventListener("hero-scroll-exit", onScrollExit);
-      const visibility = new IntersectionObserver(([entry]) => {
-        inView = entry.isIntersecting;
-        if (!inView) {
-          driftLeft.pause();
-          driftRight.pause();
-        } else if (reveal.completed && !reducedMotion.matches) {
-          driftLeft.play();
-          driftRight.play();
-        }
-      });
-      visibility.observe(root.current!);
-      play();
-      reducedMotion.addEventListener("change", play);
-      return () => {
-        hero.removeEventListener("hero-scroll-exit", onScrollExit);
-        reducedMotion.removeEventListener("change", play);
-        visibility.disconnect();
-      };
-    });
-    return () => {
-      scope.revert();
-    };
-  }, []);
+  useHeroReveal(root);
 
   return (
     <section ref={root} id="beranda" className="hero" aria-labelledby="hero-title">

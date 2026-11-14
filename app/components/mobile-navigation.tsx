@@ -44,6 +44,7 @@ export default function MobileNavigation() {
         <nav aria-label="Navigasi mobile">
           <button type="button" data-scene="hero" aria-controls="beranda" onClick={() => panel.current?.close()}>Beranda</button>
           <button type="button" data-scene="services" aria-controls="layanan" onClick={() => panel.current?.close()}>Layanan</button>
+          <button type="button" data-scene="advantages" aria-controls="keunggulan" onClick={() => panel.current?.close()}>Keunggulan</button>
         </nav>
       </dialog>
     </div>
