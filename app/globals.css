@@ -422,6 +422,9 @@ body {
 .mobile-nav button:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 @keyframes mobile-nav-enter { from { transform: translateX(100%); } to { transform: translateX(0); } }
 @media (max-width: 639px) {
+  .service-carousel-controls { display: none; }
+  .services-track { touch-action: pan-x pan-y pinch-zoom; overscroll-behavior-x: contain; }
+  .services-page { scroll-snap-stop: always; }
   .hero-decorations { display: none; }
   .section-nav { display: none; }
   .mobile-nav { display: block; position: fixed; top: max(16px, env(safe-area-inset-top)); right: 16px; z-index: 20; visibility: hidden; }
