@@ -56,10 +56,22 @@ export function useHeroReveal(root: RefObject<HTMLElement | null>) {
       });
       visibility.observe(root.current!);
       play();
-      reducedMotion.addEventListener("change", play);
+      const onMotionChange = () => {
+        // A preference change must never replay the one-time opening sketch.
+        if (reducedMotion.matches) {
+          reveal.pause();
+          reveal.seek(reveal.duration);
+          driftLeft.pause();
+          driftRight.pause();
+        } else if (inView && !hero.hasAttribute("data-exiting") && reveal.completed) {
+          driftLeft.play();
+          driftRight.play();
+        }
+      };
+      reducedMotion.addEventListener("change", onMotionChange);
       return () => {
         hero.removeEventListener("hero-scroll-exit", onScrollExit);
-        reducedMotion.removeEventListener("change", play);
+        reducedMotion.removeEventListener("change", onMotionChange);
         visibility.disconnect();
       };
     });
